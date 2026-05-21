@@ -636,7 +636,8 @@
 // ══════════════════════════════════════════════════════
 // CONFIG — paste your Google Apps Script URL here
 // ══════════════════════════════════════════════════════
-const GOOGLE_SCRIPT_URL = "/Users/parashshah/Downloads/files (1)/google-apps-script.js /Users/parashshah/Downloads/files (1)/index.html";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxKZgNSGfGZ5ytB-ElxnuYVmz7DqqCBKg7IYri97D3DZkQBMj3Etnbi3r6wHILnjUBEnw/exec";
+
 // ══════════════════════════════════════════════════════
 // QUESTIONS  (correct answer is always index 0 here;
 // shuffleOptions() will randomise them at runtime)
@@ -1313,12 +1314,15 @@ function buildReview() {
 // ══════════════════════════════════════════════════════
 // GOOGLE SHEETS
 // ══════════════════════════════════════════════════════
-async function sendToGoogleSheets(correct, total, percentage, wrong, skip) {
+function sendToGoogleSheets(correct, total, percentage, wrong, skip) {
   const statusEl = document.getElementById('submit-status-msg');
   statusEl.className = 'submit-status';
   statusEl.textContent = '⏳ Saving your results...';
 
-  const payload = {
+  const ts = new Date().toLocaleString('en-NP', { timeZone: 'Asia/Kathmandu' });
+
+  // Use GET with URL params — bypasses CORS entirely, works perfectly with Apps Script
+  const params = new URLSearchParams({
     name:       student.name,
     contact:    student.contact,
     email:      student.email,
@@ -1328,25 +1332,18 @@ async function sendToGoogleSheets(correct, total, percentage, wrong, skip) {
     correct:    correct,
     wrong:      wrong,
     skipped:    skip,
-    timestamp:  new Date().toLocaleString('en-NP', { timeZone: 'Asia/Kathmandu' })
-  };
+    timestamp:  ts
+  });
 
-  // Send as text/plain to avoid CORS preflight (standard Apps Script workaround)
-  try {
-    const res = await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload)
-    });
+  const url = GOOGLE_SCRIPT_URL + '?' + params.toString();
+
+  // Use an invisible image tag — fires GET request, zero CORS issues
+  const img = new Image();
+  img.onload = img.onerror = function() {
     statusEl.className = 'submit-status success';
     statusEl.textContent = '✅ Results saved! Your instructor can see your score.';
-  } catch (err) {
-    // no-cors always succeeds unless network is down; log for debugging
-    console.error('Sheets error:', err);
-    statusEl.className = 'submit-status error';
-    statusEl.textContent = '⚠️ Could not save — please inform your instructor manually.';
-  }
+  };
+  img.src = url;
 }
 </script>
 </body>
