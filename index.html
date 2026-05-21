@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Quiz — Data Science Batch</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a40;
+    --accent: #7c6af7;
+    --accent2: #f7c96a;
+    --green: #5af7a0;
+    --red: #f75a7c;
+    --text: #e8e8f0;
+    --muted: #7878a0;
+    --radius: 12px;
+  }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px; left: -200px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(124,106,247,0.12) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -200px; right: -200px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(247,201,106,0.08) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; position: relative; z-index: 1; }
+  .screen.active { display: block; }
+
+  /* ════════════════════════════════
+     REGISTRATION
+  ════════════════════════════════ */
+  #reg-screen {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem;
+  }
+  #reg-screen.active { display: flex; }
+
+  .reg-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    width: 100%; max-width: 460px;
+    box-shadow: 0 0 80px rgba(124,106,247,0.1);
+    animation: fadeUp 0.5s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(16px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .logo-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent), #a06af7);
+    color: #fff;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    padding: 4px 12px;
+    border-radius: 100px;
+    letter-spacing: 2px;
+    margin-bottom: 1.25rem;
+  }
+  .reg-card h1 {
+    font-size: 1.85rem; font-weight: 800; line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+  .reg-card h1 span { color: var(--accent); }
+  .reg-card p {
+    color: var(--muted); font-size: 0.88rem;
+    margin-bottom: 1.75rem; line-height: 1.6;
+  }
+
+  .form-group { margin-bottom: 1rem; }
+  .form-group label {
+    display: block;
+    font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 1px; color: var(--muted);
+    text-transform: uppercase; margin-bottom: 0.45rem;
+  }
+  .form-group input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.8rem 1rem;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+  .form-group input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(124,106,247,0.15);
+  }
+  .form-group input::placeholder { color: var(--muted); }
+
+  .btn-primary {
+    width: 100%;
+    padding: 0.95rem;
+    background: linear-gradient(135deg, var(--accent), #a06af7);
+    border: none; border-radius: var(--radius);
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.3px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    margin-top: 0.5rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(124,106,247,0.4);
+  }
+  .btn-primary:active { transform: translateY(0); }
+
+  .info-strip {
+    display: flex; gap: 0.75rem;
+    margin-top: 1.5rem; padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .info-item { flex: 1; text-align: center; }
+  .info-item .num { font-size: 1.4rem; font-weight: 800; color: var(--accent2); }
+  .info-item .lbl { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ════════════════════════════════
+     QUIZ HEADER
+  ════════════════════════════════ */
+  .quiz-header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    padding: 0.85rem 1.25rem;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .quiz-brand {
+    font-weight: 800; font-size: 0.95rem;
+    color: var(--accent); white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .progress-wrap { flex: 1; min-width: 0; }
+  .progress-label {
+    font-size: 0.68rem; color: var(--muted);
+    margin-bottom: 4px;
+    display: flex; justify-content: space-between;
+  }
+  .progress-bar {
+    height: 5px; background: var(--surface2);
+    border-radius: 100px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 100px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+  .q-counter {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem; color: var(--muted);
+    white-space: nowrap; flex-shrink: 0;
+  }
+
+  /* ════════════════════════════════
+     QUIZ BODY
+  ════════════════════════════════ */
+  .quiz-body {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 6rem;
+  }
+
+  /* Question Map */
+  .q-map-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1.25rem;
+  }
+  .q-map-title {
+    font-size: 0.68rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1.5px;
+    font-weight: 600; margin-bottom: 0.75rem;
+  }
+  .q-map {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+  }
+  .q-dot {
+    width: 30px; height: 30px;
+    border-radius: 7px;
+    border: 1.5px solid var(--border);
+    background: var(--surface2);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68rem; font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .q-dot:hover { border-color: var(--accent); }
+  .q-dot.answered { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .q-dot.current { border-color: var(--accent2); box-shadow: 0 0 0 2px rgba(247,201,106,0.3); }
+
+  /* Question Card */
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    animation: slideIn 0.3s ease;
+  }
+  .q-number {
+    font-size: 0.68rem; color: var(--accent);
+    text-transform: uppercase; letter-spacing: 2px;
+    font-weight: 700; margin-bottom: 0.85rem;
+  }
+  .q-text {
+    font-size: 1rem; font-weight: 600;
+    line-height: 1.55; margin-bottom: 1.1rem;
+  }
+
+  /* Code block */
+  .code-block {
+    background: #0d0d16;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: #c8c8e8;
+    margin: 0 0 1.25rem;
+    overflow-x: auto;
+    white-space: pre;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Options */
+  .options-grid { display: grid; gap: 0.6rem; }
+
+  .option-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+    font-family: 'Syne', sans-serif;
+    color: var(--text);
+    font-size: 0.88rem;
+    line-height: 1.45;
+    width: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .option-btn:hover { border-color: var(--accent); background: rgba(124,106,247,0.08); }
+  .option-btn.selected { border-color: var(--accent); background: rgba(124,106,247,0.15); }
+  .option-btn.correct  { border-color: var(--green);  background: rgba(90,247,160,0.1); }
+  .option-btn.wrong    { border-color: var(--red);    background: rgba(247,90,124,0.1); }
+
+  .opt-label {
+    display: flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; min-width: 24px;
+    border-radius: 6px; background: var(--border);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68rem; font-weight: 700;
+    color: var(--muted); transition: all 0.15s;
+    margin-top: 1px;
+  }
+  .option-btn.selected .opt-label { background: var(--accent); color: #fff; }
+  .option-btn.correct  .opt-label { background: var(--green); color: #000; }
+  .option-btn.wrong    .opt-label { background: var(--red); color: #fff; }
+
+  .opt-text { flex: 1; word-break: break-word; }
+  .opt-code-block {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-all;
+    background: rgba(0,0,0,0.3);
+    border-radius: 6px;
+    padding: 0.5rem 0.65rem;
+    width: 100%;
+    margin-top: 0.15rem;
+  }
+
+  /* Nav buttons — sticky bottom on mobile */
+  .quiz-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 99;
+    background: rgba(10,10,15,0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    padding: 0.75rem 1rem;
+    display: flex; gap: 0.5rem;
+  }
+  .btn-nav {
+    flex: 1;
+    padding: 0.75rem 0.5rem;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-weight: 600; font-size: 0.85rem;
+    cursor: pointer; transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
+  }
+  .btn-nav:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-nav:disabled { opacity: 0.35; cursor: default; }
+  .btn-nav.primary {
+    background: linear-gradient(135deg, var(--accent), #a06af7);
+    border-color: transparent; color: #fff;
+  }
+  .btn-nav.primary:hover { box-shadow: 0 4px 18px rgba(124,106,247,0.4); transform: translateY(-1px); }
+  .btn-nav.danger {
+    background: linear-gradient(135deg, var(--red), #f7506a);
+    border-color: transparent; color: #fff;
+    flex: 1.4;
+  }
+  .btn-nav.danger:hover { box-shadow: 0 4px 18px rgba(247,90,124,0.4); transform: translateY(-1px); }
+
+  /* ════════════════════════════════
+     RESULT SCREEN
+  ════════════════════════════════ */
+  #result-screen { min-height: 100vh; padding: 2rem 1rem 3rem; }
+  #result-screen.active { display: block; }
+
+  .result-inner { max-width: 780px; margin: 0 auto; }
+
+  .score-hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    position: relative; overflow: hidden;
+    animation: fadeUp 0.5s ease;
+  }
+  .score-hero::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(124,106,247,0.13), transparent 65%);
+  }
+  .score-hero h2 {
+    font-size: 0.75rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 1rem; position: relative;
+  }
+  .score-ring {
+    width: 140px; height: 140px;
+    margin: 0 auto 1.25rem; position: relative;
+  }
+  .score-ring svg { transform: rotate(-90deg); }
+  .ring-bg { stroke: var(--border); }
+  .ring-fill {
+    stroke: var(--accent); stroke-linecap: round;
+    stroke-dasharray: 376; stroke-dashoffset: 376;
+    transition: stroke-dashoffset 1s ease;
+  }
+  .score-num {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem; font-weight: 800;
+  }
+  .score-num small { font-size: 0.85rem; color: var(--muted); font-weight: 400; }
+  .student-name { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.25rem; position: relative; }
+  .score-msg { color: var(--muted); font-size: 0.85rem; position: relative; }
+
+  .score-stats {
+    display: flex; justify-content: center; gap: 1.5rem;
+    margin-top: 1.25rem; padding-top: 1.25rem;
+    border-top: 1px solid var(--border); position: relative;
+  }
+  .stat { text-align: center; }
+  .stat .val { font-size: 1.5rem; font-weight: 800; }
+  .stat .lbl { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .stat.correct .val { color: var(--green); }
+  .stat.wrong   .val { color: var(--red); }
+  .stat.skip    .val { color: var(--accent2); }
+
+  .submit-status {
+    text-align: center; padding: 0.75rem;
+    font-size: 0.82rem; color: var(--muted);
+    margin-bottom: 1rem;
+  }
+  .submit-status.success { color: var(--green); }
+  .submit-status.error   { color: var(--red); }
+
+  .review-section h3 {
+    font-size: 0.72rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 0.85rem;
+  }
+  .review-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    padding: 1.25rem;
+    margin-bottom: 0.85rem;
+    animation: fadeUp 0.4s ease;
+  }
+  .review-card.was-wrong { border-color: rgba(247,90,124,0.3); }
+  .review-card.was-correct { border-color: rgba(90,247,160,0.25); }
+
+  .review-q-num {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-bottom: 0.6rem;
+    font-size: 0.75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    padding: 2px 9px; border-radius: 100px;
+    font-size: 0.65rem; font-weight: 700; letter-spacing: 1px;
+  }
+  .tag.correct { background: rgba(90,247,160,0.15); color: var(--green); }
+  .tag.wrong   { background: rgba(247,90,124,0.15); color: var(--red); }
+  .review-topic { color: var(--muted); font-size: 0.68rem; margin-left: auto; }
+
+  .review-q-text { font-size: 0.88rem; line-height: 1.5; margin-bottom: 0.6rem; }
+  .review-code {
+    background: #0d0d16;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem; line-height: 1.65;
+    color: #c8c8e8;
+    margin: 0.5rem 0;
+    overflow-x: auto; white-space: pre;
+    -webkit-overflow-scrolling: touch;
+  }
+  .review-answers { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.82rem; }
+  .review-answers .ans { display: flex; align-items: flex-start; gap: 0.4rem; }
+  .ans-icon { font-size: 0.8rem; margin-top: 1px; flex-shrink: 0; }
+  .ans-label { color: var(--muted); min-width: 90px; font-size: 0.75rem; flex-shrink: 0; }
+  .ans-val { font-family: 'Space Mono', monospace; font-size: 0.75rem; word-break: break-word; }
+  .ans-val.green { color: var(--green); }
+  .ans-val.red   { color: var(--red); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ════════════════════════════════
+     RESPONSIVE
+  ════════════════════════════════ */
+  @media (min-width: 640px) {
+    .quiz-body { padding: 2rem 1.5rem 3rem; }
+    .quiz-nav {
+      position: static;
+      background: none; border: none;
+      padding: 0;
+      backdrop-filter: none;
+    }
+    .btn-nav { flex: unset; padding: 0.75rem 1.4rem; }
+    .btn-nav.danger { flex: unset; }
+    .question-card { padding: 2rem; }
+    .code-block { font-size: 0.82rem; }
+    .q-dot { width: 32px; height: 32px; font-size: 0.72rem; }
+    .score-ring { width: 155px; height: 155px; }
+    .score-num { font-size: 2.2rem; }
+    .reg-card { padding: 3rem 2.5rem; }
+  }
+
+  @media (max-width: 380px) {
+    .reg-card h1 { font-size: 1.55rem; }
+    .q-text { font-size: 0.93rem; }
+    .option-btn { font-size: 0.83rem; }
+    .btn-nav { font-size: 0.8rem; }
+    .score-hero { padding: 2rem 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════
+     SCREEN 1: REGISTRATION
+════════════════════════════════════════════════ -->
+<div class="screen active" id="reg-screen">
+  <div class="reg-card">
+    <div class="logo-badge">🐍 PYTHON QUIZ</div>
+    <h1>Test Your <span>Python</span> Knowledge</h1>
+    <p>30 objective questions covering Python fundamentals — variables, strings, lists, conditionals, loops, functions &amp; pandas.</p>
+
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" id="inp-name" placeholder="e.g. Ram Shrestha" autocomplete="name">
+    </div>
+    <div class="form-group">
+      <label>Contact Number</label>
+      <input type="tel" id="inp-contact" placeholder="e.g. 9800000000" autocomplete="tel">
+    </div>
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="inp-email" placeholder="e.g. ram@email.com" autocomplete="email">
+    </div>
+    <button class="btn-primary" onclick="startQuiz()">Start Quiz →</button>
+
+    <div class="info-strip">
+      <div class="info-item">
+        <div class="num">30</div>
+        <div class="lbl">Questions</div>
+      </div>
+      <div class="info-item">
+        <div class="num">4</div>
+        <div class="lbl">Options</div>
+      </div>
+      <div class="info-item">
+        <div class="num">∞</div>
+        <div class="lbl">Review</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     SCREEN 2: QUIZ
+════════════════════════════════════════════════ -->
+<div class="screen" id="quiz-screen">
+  <div class="quiz-header">
+    <div class="quiz-brand">🐍 PythonQuiz</div>
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span id="prog-text">Q 1 of 30</span>
+        <span id="prog-pct">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="prog-fill"></div>
+      </div>
+    </div>
+    <div class="q-counter" id="q-counter">0/30</div>
+  </div>
+
+  <div class="quiz-body">
+    <div class="q-map-wrap">
+      <div class="q-map-title">Navigator — tap to jump</div>
+      <div class="q-map" id="q-map"></div>
+    </div>
+
+    <div class="question-card" id="question-card"></div>
+
+    <div class="quiz-nav">
+      <button class="btn-nav" id="btn-prev" onclick="navigate(-1)">← Prev</button>
+      <button class="btn-nav primary" id="btn-next" onclick="navigate(1)">Next →</button>
+      <button class="btn-nav danger" onclick="confirmSubmit()">Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     SCREEN 3: RESULTS
+════════════════════════════════════════════════ -->
+<div class="screen" id="result-screen">
+  <div class="result-inner">
+
+    <div class="score-hero">
+      <h2>Your Score</h2>
+      <div class="score-ring">
+        <svg viewBox="0 0 140 140" width="140" height="140">
+          <circle class="ring-bg" cx="70" cy="70" r="60" fill="none" stroke-width="9"/>
+          <circle class="ring-fill" id="ring-fill" cx="70" cy="70" r="60" fill="none" stroke-width="9"/>
+        </svg>
+        <div class="score-num" id="score-num">0<small>/30</small></div>
+      </div>
+      <div class="student-name" id="result-name"></div>
+      <div class="score-msg"   id="score-msg"></div>
+      <div class="score-stats">
+        <div class="stat correct"><div class="val" id="stat-correct">0</div><div class="lbl">Correct</div></div>
+        <div class="stat wrong">  <div class="val" id="stat-wrong">0</div>  <div class="lbl">Wrong</div></div>
+        <div class="stat skip">   <div class="val" id="stat-skip">0</div>   <div class="lbl">Skipped</div></div>
+      </div>
+    </div>
+
+    <div id="submit-status-msg" class="submit-status"></div>
+
+    <div class="review-section">
+      <h3>📋 Detailed Review — All Questions</h3>
+      <div id="review-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// CONFIG — paste your Google Apps Script URL here
+// ══════════════════════════════════════════════════════
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzk2cOl36bJ3ZhChlf-NcKyn2L3wqosodGZVfgoYUve67PTgKmA49rewjq4D6ZhQJvVeA/exec";
+
+// ══════════════════════════════════════════════════════
+// QUESTIONS  (correct answer is always index 0 here;
+// shuffleOptions() will randomise them at runtime)
+// ══════════════════════════════════════════════════════
+const QUESTIONS = [
+
+  /* ── INTRODUCTION ─────────────────────────── */
+  {
+    topic: "Introduction",
+    text: "What will this code print?",
+    code: 'print("Hello, Data Science!")',
+    options: [
+      'Hello, Data Science!',
+      '"Hello, Data Science!"',
+      'Hello Data Science',
+      'Error: missing variable'
+    ],
+    answer: 0
+  },
+  {
+    topic: "Introduction",
+    text: "What is the output of the following?",
+    code: 'print("hello " + "paras")',
+    options: [
+      'hello paras',
+      'helloparas',
+      'hello + paras',
+      'Error: cannot add strings'
+    ],
+    answer: 0
+  },
+  {
+    topic: "Introduction",
+    text: "A simple calculator computes num1=10, num2=5. What does this print?",
+    code: 'num1 = 10\nnum2 = 5\nprint("Division:", num1 / num2)',
+    options: [
+      'Division: 2.0',
+      'Division: 2',
+      'Division: 5.0',
+      'Error: integer division'
+    ],
+    answer: 0
+  },
+
+  /* ── VARIABLES & DATA TYPES ────────────────── */
+  {
+    topic: "Variables & Data Types",
+    text: "What will `type(age)` return if `age = 25`?",
+    code: "age = 25\nprint(type(age))",
+    options: [
+      "<class 'int'>",
+      "<class 'str'>",
+      "<class 'float'>",
+      "<class 'num'>"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Variables & Data Types",
+    text: "What is the output of the f-string below?",
+    code: "name = \"Ram\"\nage = 25\nheight = 5.9\nprint(f\"{name} is {age} years old and his height is {height} feet.\")",
+    options: [
+      "Ram is 25 years old and his height is 5.9 feet.",
+      "{name} is {age} years old and his height is {height} feet.",
+      "name is age years old and his height is height feet.",
+      "Error: invalid f-string"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Variables & Data Types",
+    text: "What will the following code output?",
+    code: "x = 'ram'\ny = \"555\"\nprint(type(x))\nprint(type(y))",
+    options: [
+      "<class 'str'> then <class 'str'>",
+      "<class 'str'> then <class 'int'>",
+      "<class 'char'> then <class 'int'>",
+      "str then int"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Variables & Data Types",
+    text: "What is the total cost printed by this Tea Shop code?",
+    code: "tea_count = 3\nprice_per_tea = 25.5\ntotal_cost = tea_count * price_per_tea\nprint(\"Total to Pay: Rs.\", total_cost)",
+    options: [
+      "Total to Pay: Rs. 76.5",
+      "Total to Pay: Rs. 78",
+      "Total to Pay: Rs. 25.5",
+      "Total to Pay: Rs. 3"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Variables & Data Types",
+    text: "Which of these correctly uses an f-string to print a variable?",
+    isCode: true,
+    options: [
+      'print(f"my name is {name}")',
+      'print("my name is {name}")',
+      'print(f"my name is name")',
+      'print(f"my name is " + {name})'
+    ],
+    answer: 0
+  },
+
+  /* ── STRINGS ───────────────────────────────── */
+  {
+    topic: "Strings",
+    text: "What is printed from the string `\"Programming\"` with this code?",
+    code: "word = \"Programming\"\nprint(word[:5])\nprint(word[-5:])\nprint(word[::2])",
+    options: [
+      "Progr  then  mming  then  Porrmig",
+      "Progr  then  aming  then  Prgamn",
+      "Progr  then  mming  then  Program",
+      "Error: invalid slice"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Strings",
+    text: "What does `text.strip()` do to `\"   Hello Students   \"`?",
+    options: [
+      'Removes leading and trailing spaces → "Hello Students"',
+      'Removes all spaces → "HelloStudents"',
+      'Converts to uppercase → "   HELLO STUDENTS   "',
+      'Returns the length of the string'
+    ],
+    answer: 0
+  },
+  {
+    topic: "Strings",
+    text: "What is the output of this slice operation?",
+    code: 'text = "python is programming language"\nprint(text[0:6])',
+    options: [
+      "python",
+      "python ",
+      "pytho",
+      "is"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Strings",
+    text: "Which code correctly reverses the string `\"hello\"` using slicing?",
+    isCode: true,
+    options: [
+      'text = "hello"\nprint(text[::-1])',
+      'text = "hello"\nprint(text[::1])',
+      'text = "hello"\nprint(text[-1:0])',
+      'text = "hello"\nprint(reversed(text))'
+    ],
+    answer: 0
+  },
+  {
+    topic: "Strings",
+    text: "What is the output of `\"I have a dog\".replace(\"dog\", \"cat\")`?",
+    options: [
+      "I have a cat",
+      "I have a dog",
+      "cat",
+      "Error: replace needs 3 arguments"
+    ],
+    answer: 0
+  },
+
+  /* ── CONDITIONALS ──────────────────────────── */
+  {
+    topic: "Conditionals",
+    text: "What is printed when age = 17?",
+    code: "age = 17\nif age >= 18:\n    print(\"You can vote.\")\nelif age == 17:\n    print(\"You can vote next year.\")\nelse:\n    print(\"Too young to vote.\")",
+    options: [
+      "You can vote next year.",
+      "You can vote.",
+      "Too young to vote.",
+      "Nothing is printed"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Conditionals",
+    text: "The user enters 7. What is the output?",
+    code: "num = 7\nif num % 2 == 0:\n    print(\"Even\")\nelse:\n    print(\"Odd\")",
+    options: [
+      "Odd",
+      "Even",
+      "7",
+      "Error"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Conditionals",
+    text: "What is printed when total_bill = 300?",
+    code: "total_bill = 300\nif total_bill > 500:\n    discount = total_bill * 0.10\nelif total_bill > 200:\n    print(\"You get a 5% discount.\")\n    discount = total_bill * 0.05\nelse:\n    discount = 0\nfinal = total_bill - discount\nprint(\"Final:\", final)",
+    options: [
+      "You get a 5% discount.\nFinal: 285.0",
+      "Final: 300",
+      "You get a 10% discount.\nFinal: 270.0",
+      "Final: 285"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Conditionals",
+    text: "num = 15. What is printed?",
+    code: "num = 15\nif num % 3 == 0 and num % 5 == 0:\n    print(num, \"is divisible by both 3 and 5\")\nelse:\n    print(num, \"is not divisible by both 3 and 5\")",
+    options: [
+      "15 is divisible by both 3 and 5",
+      "15 is not divisible by both 3 and 5",
+      "True",
+      "Error: invalid condition"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Conditionals",
+    text: "What is printed when `a = 5` and `b = 5`?",
+    code: "a = 5\nb = 5\nif a == b:\n    print(\"Both numbers are equal\")\nelse:\n    print(\"Numbers are not equal\")",
+    options: [
+      "Both numbers are equal",
+      "Numbers are not equal",
+      "True",
+      "Error"
+    ],
+    answer: 0
+  },
+
+  /* ── LOOPS ─────────────────────────────────── */
+  {
+    topic: "Loops",
+    text: "How many lines does this print?",
+    code: "for i in range(1, 6):\n    print(\"Hello\", i)",
+    options: [
+      "5 lines (Hello 1 through Hello 5)",
+      "6 lines (Hello 0 through Hello 5)",
+      "4 lines",
+      "Infinite loop"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Loops",
+    text: "What does this while loop print?",
+    code: "i = 1\nwhile i <= 5:\n    print(i)\n    i += 1",
+    options: [
+      "1, 2, 3, 4, 5  (each on new line)",
+      "0, 1, 2, 3, 4  (each on new line)",
+      "1, 2, 3, 4     (each on new line)",
+      "Infinite loop"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Loops",
+    text: "What is the output of this reverse loop?",
+    code: "for i in range(5, 0, -1):\n    print(i)",
+    options: [
+      "5, 4, 3, 2, 1  (each on new line)",
+      "0, 1, 2, 3, 4, 5",
+      "5, 4, 3, 2, 1, 0",
+      "Error: negative step"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Loops",
+    text: "What is the output of the factorial code?",
+    code: "fact = 1\nn = 5\nfor i in range(1, n+1):\n    fact *= i\nprint(\"Factorial =\", fact)",
+    options: [
+      "Factorial = 120",
+      "Factorial = 25",
+      "Factorial = 15",
+      "Factorial = 60"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Loops",
+    text: "Which loop prints only even numbers from 2 to 20?",
+    isCode: true,
+    options: [
+      "for i in range(2, 21, 2):\n    print(i)",
+      "for i in range(1, 21, 2):\n    print(i)",
+      "for i in range(2, 20):\n    print(i)",
+      "for i in range(0, 21):\n    if i % 2:\n        print(i)"
+    ],
+    answer: 0
+  },
+
+  /* ── FUNCTIONS ─────────────────────────────── */
+  {
+    topic: "Functions",
+    text: "What does this function print?",
+    code: "def greet(name):\n    return f\"Hello, {name}!\"\n\nprint(greet(\"Sita\"))",
+    options: [
+      "Hello, Sita!",
+      "Hello, name!",
+      "greet(Sita)",
+      "Error: return outside function"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Functions",
+    text: "What is the output?",
+    code: "def square(num):\n    return num * num\n\nprint(\"Square of 4 is:\", square(4))",
+    options: [
+      "Square of 4 is: 16",
+      "Square of 4 is: 8",
+      "Square of 4 is: 44",
+      "Error"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Functions",
+    text: "What does `largest(10, 15)` return?",
+    code: "def largest(a, b):\n    return a if a > b else b",
+    options: ["15", "10", "True", "largest"],
+    answer: 0
+  },
+
+  /* ── LISTS & TUPLES ────────────────────────── */
+  {
+    topic: "Lists & Tuples",
+    text: "What is the output of this list code?",
+    code: "numbers = [10, 20, 30, 40, 50]\nprint(numbers[1])\nprint(numbers[-1])",
+    options: [
+      "20 then 50",
+      "10 then 50",
+      "20 then 40",
+      "Error: index out of range"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Lists & Tuples",
+    text: "What is printed after appending to the list?",
+    code: "fruits = [\"apple\", \"banana\"]\nfruits.append(\"grapes\")\nprint(fruits)",
+    options: [
+      "['apple', 'banana', 'grapes']",
+      "['grapes', 'apple', 'banana']",
+      "apple banana grapes",
+      "Error: append not defined"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Lists & Tuples",
+    text: "What does this tuple-to-list-to-tuple code print?",
+    code: "t = (10, 20, 30)\ntemp = list(t)\ntemp.append(40)\nt = tuple(temp)\nprint(t)",
+    options: [
+      "(10, 20, 30, 40)",
+      "[10, 20, 30, 40]",
+      "(10, 20, 30)",
+      "Error: tuples are immutable"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Lists & Tuples",
+    text: "What is the output of this sorted list?",
+    code: "nums = [5, 3, 8, 1]\nnums.sort()\nprint(nums)",
+    options: [
+      "[1, 3, 5, 8]",
+      "[8, 5, 3, 1]",
+      "[5, 3, 8, 1]",
+      "(1, 3, 5, 8)"
+    ],
+    answer: 0
+  },
+
+  /* ── PANDAS ────────────────────────────────── */
+  {
+    topic: "Pandas",
+    text: "In pandas, which tool picks data using label names like `'s1'` or `'Math'`?",
+    options: [
+      ".loc  (Label location)",
+      ".iloc (Integer location)",
+      ".at   (for integers only)",
+      ".iat  (for label names)"
+    ],
+    answer: 0
+  },
+  {
+    topic: "Pandas",
+    text: "Given `df.iloc[0:3]`, how many rows are returned?",
+    code: "# df has rows at positions 0,1,2,3,4\nprint(df.iloc[0:3])",
+    options: [
+      "3 rows (positions 0, 1, 2 — end NOT included)",
+      "4 rows (positions 0, 1, 2, 3 — end included)",
+      "2 rows (positions 0 and 1 only)",
+      "Error: invalid slice"
+    ],
+    answer: 0
+  }
+];
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let student = {};
+let questions = [];
+let userAnswers = [];
+let currentQ = 0;
+
+// ══════════════════════════════════════════════════════
+// SHUFFLE (preserves correct answer tracking)
+// ══════════════════════════════════════════════════════
+function shuffleOptions(q) {
+  // build [0,1,2,3], shuffle, remap answer
+  const idx = [0, 1, 2, 3];
+  for (let i = idx.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [idx[i], idx[j]] = [idx[j], idx[i]];
+  }
+  const newOptions = idx.map(i => q.options[i]);
+  const newAnswer  = idx.indexOf(q.answer);
+  return { ...q, options: newOptions, answer: newAnswer };
+}
+
+// ══════════════════════════════════════════════════════
+// REGISTRATION
+// ══════════════════════════════════════════════════════
+function startQuiz() {
+  const name    = document.getElementById('inp-name').value.trim();
+  const contact = document.getElementById('inp-contact').value.trim();
+  const email   = document.getElementById('inp-email').value.trim();
+
+  if (!name || !contact || !email) {
+    alert('Please fill in all fields before starting.');
+    return;
+  }
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    alert('Please enter a valid email address.');
+    return;
+  }
+
+  student = { name, contact, email };
+  questions   = QUESTIONS.map(shuffleOptions);
+  userAnswers = new Array(questions.length).fill(null);
+  currentQ    = 0;
+
+  showScreen('quiz-screen');
+  buildMap();
+  renderQuestion();
+}
+
+// ══════════════════════════════════════════════════════
+// SCREEN MANAGEMENT
+// ══════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ══════════════════════════════════════════════════════
+// QUESTION MAP
+// ══════════════════════════════════════════════════════
+function buildMap() {
+  const map = document.getElementById('q-map');
+  map.innerHTML = '';
+  questions.forEach((_, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'q-dot';
+    btn.textContent = i + 1;
+    btn.onclick = () => { currentQ = i; renderQuestion(); };
+    map.appendChild(btn);
+  });
+}
+
+function updateMap() {
+  document.querySelectorAll('.q-dot').forEach((dot, i) => {
+    dot.className = 'q-dot';
+    if (userAnswers[i] !== null) dot.classList.add('answered');
+    if (i === currentQ)          dot.classList.add('current');
+  });
+  // scroll current dot into view
+  const currentDot = document.querySelectorAll('.q-dot')[currentQ];
+  currentDot?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER QUESTION
+// ══════════════════════════════════════════════════════
+function esc(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function renderQuestion() {
+  const q     = questions[currentQ];
+  const total = questions.length;
+  const card  = document.getElementById('question-card');
+
+  // ── header & question text
+  let html = `<div class="q-number">Q${currentQ + 1} / ${total} · ${q.topic}</div>`;
+  html += `<div class="q-text">${esc(q.text)}</div>`;
+
+  // ── optional code block
+  if (q.code) {
+    html += `<div class="code-block">${esc(q.code)}</div>`;
+  }
+
+  // ── options
+  html += `<div class="options-grid">`;
+  ['A', 'B', 'C', 'D'].forEach((lbl, i) => {
+    const isSel = userAnswers[currentQ] === i;
+    const cls   = `option-btn${isSel ? ' selected' : ''}`;
+
+    // For "isCode" questions, render option text as a code block
+    let optInner;
+    if (q.isCode) {
+      optInner = `<div class="opt-text"><div class="opt-code-block">${esc(q.options[i])}</div></div>`;
+    } else {
+      // Replace newlines in plain-text options with <br>
+      const safe = esc(q.options[i]).replace(/\n/g, '<br>');
+      optInner = `<span class="opt-text">${safe}</span>`;
+    }
+
+    html += `<button class="${cls}" onclick="selectAnswer(${i})">
+      <span class="opt-label">${lbl}</span>
+      ${optInner}
+    </button>`;
+  });
+  html += `</div>`;
+
+  card.innerHTML = html;
+
+  // Reset animation
+  card.style.animation = 'none';
+  void card.offsetWidth;
+  card.style.animation = 'slideIn 0.3s ease';
+
+  // ── update progress
+  const answered = userAnswers.filter(a => a !== null).length;
+  const pct      = Math.round((currentQ / total) * 100);
+  document.getElementById('prog-text').textContent = `Q ${currentQ + 1} of ${total}`;
+  document.getElementById('prog-pct').textContent  = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('q-counter').textContent = `${answered}/${total}`;
+
+  document.getElementById('btn-prev').disabled = (currentQ === 0);
+
+  updateMap();
+}
+
+function selectAnswer(idx) {
+  userAnswers[currentQ] = idx;
+  renderQuestion();
+}
+
+function navigate(dir) {
+  const next = currentQ + dir;
+  if (next >= 0 && next < questions.length) {
+    currentQ = next;
+    renderQuestion();
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// SUBMIT
+// ══════════════════════════════════════════════════════
+function confirmSubmit() {
+  const unanswered = userAnswers.filter(a => a === null).length;
+  const msg = unanswered > 0
+    ? `You have ${unanswered} unanswered question(s). Submit anyway?`
+    : 'Submit your quiz? Answers cannot be changed after submission.';
+  if (!confirm(msg)) return;
+  submitQuiz();
+}
+
+function submitQuiz() {
+  let correct = 0, wrong = 0, skip = 0;
+  questions.forEach((q, i) => {
+    if (userAnswers[i] === null)       skip++;
+    else if (userAnswers[i] === q.answer) correct++;
+    else                               wrong++;
+  });
+
+  const total      = questions.length;
+  const percentage = Math.round((correct / total) * 100);
+
+  showScreen('result-screen');
+
+  // ── animate ring
+  const circumference = 2 * Math.PI * 60; // r=60 → ≈ 376.99
+  document.getElementById('ring-fill').style.strokeDasharray  = circumference;
+  document.getElementById('ring-fill').style.strokeDashoffset = circumference;
+  document.getElementById('score-num').innerHTML = `${correct}<small>/${total}</small>`;
+  setTimeout(() => {
+    const offset = circumference - (circumference * percentage / 100);
+    document.getElementById('ring-fill').style.strokeDashoffset = offset;
+  }, 150);
+
+  document.getElementById('result-name').textContent = student.name;
+  document.getElementById('stat-correct').textContent = correct;
+  document.getElementById('stat-wrong').textContent   = wrong;
+  document.getElementById('stat-skip').textContent    = skip;
+
+  const msgs = [
+    [90, '🏆 Outstanding! You are a Python Pro!'],
+    [75, '🎉 Great job! Strong understanding of Python!'],
+    [60, '👍 Good effort! Keep practicing!'],
+    [40, '📚 Keep studying — you are getting there!'],
+    [0,  '💪 Don\'t give up! Review topics and try again!']
+  ];
+  document.getElementById('score-msg').textContent = msgs.find(([min]) => percentage >= min)[1];
+
+  buildReview();
+  sendToGoogleSheets(correct, total, percentage, correct, wrong, skip);
+}
+
+// ══════════════════════════════════════════════════════
+// REVIEW
+// ══════════════════════════════════════════════════════
+function buildReview() {
+  const list = document.getElementById('review-list');
+  list.innerHTML = '';
+
+  questions.forEach((q, i) => {
+    const ua        = userAnswers[i];
+    const isCorrect = ua !== null && ua === q.answer;
+    const isSkipped = ua === null;
+
+    const card = document.createElement('div');
+    card.className = `review-card ${isCorrect ? 'was-correct' : 'was-wrong'}`;
+
+    const tag = isCorrect
+      ? `<span class="tag correct">✓ CORRECT</span>`
+      : isSkipped
+        ? `<span class="tag wrong">— SKIPPED</span>`
+        : `<span class="tag wrong">✗ WRONG</span>`;
+
+    const codeHtml = q.code
+      ? `<div class="review-code">${esc(q.code)}</div>`
+      : '';
+
+    let answersHtml = '';
+    if (!isCorrect) {
+      const yourAns = ua !== null ? q.options[ua] : 'Not answered';
+      const corrAns = q.options[q.answer];
+      answersHtml = `
+        <div class="review-answers">
+          <div class="ans"><span class="ans-icon">✗</span><span class="ans-label">Your answer:</span><span class="ans-val red">${esc(yourAns)}</span></div>
+          <div class="ans"><span class="ans-icon">✓</span><span class="ans-label">Correct answer:</span><span class="ans-val green">${esc(corrAns)}</span></div>
+        </div>`;
+    } else {
+      answersHtml = `
+        <div class="review-answers">
+          <div class="ans"><span class="ans-icon">✓</span><span class="ans-label">Your answer:</span><span class="ans-val green">${esc(q.options[ua])}</span></div>
+        </div>`;
+    }
+
+    card.innerHTML = `
+      <div class="review-q-num">
+        <span>Q${i + 1}</span>${tag}<span class="review-topic">${q.topic}</span>
+      </div>
+      <div class="review-q-text">${esc(q.text)}</div>
+      ${codeHtml}
+      ${answersHtml}
+    `;
+    list.appendChild(card);
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// GOOGLE SHEETS
+// ══════════════════════════════════════════════════════
+async function sendToGoogleSheets(score, total, percentage, correct, wrong, skip) {
+  const statusEl = document.getElementById('submit-status-msg');
+  statusEl.className = 'submit-status';
+  statusEl.textContent = '⏳ Saving your results...';
+
+  if (false) {
+    statusEl.textContent = '⚠️ Google Sheets not configured yet. See README.md to connect.';
+    return;
+  }
+
+  const payload = {
+    name:      student.name,
+    contact:   student.contact,
+    email:     student.email,
+    score:     score,
+    total:     total,
+    percentage: percentage,
+    correct:   correct,
+    wrong:     wrong,
+    skipped:   skip,
+    timestamp: new Date().toLocaleString('en-NP', { timeZone: 'Asia/Kathmandu' })
+  };
+
+  try {
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    statusEl.className = 'submit-status success';
+    statusEl.textContent = '✅ Results saved! Your instructor can see your score.';
+  } catch (err) {
+    statusEl.className = 'submit-status error';
+    statusEl.textContent = '⚠️ Could not save — please inform your instructor manually.';
+  }
+}
+</script>
+</body>
+</html>
