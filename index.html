@@ -402,8 +402,9 @@
   .ring-bg { stroke: var(--border); }
   .ring-fill {
     stroke: var(--accent); stroke-linecap: round;
-    stroke-dasharray: 376; stroke-dashoffset: 376;
-    transition: stroke-dashoffset 1s ease;
+    stroke-dasharray: 377;
+    stroke-dashoffset: 377;
+    transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1);
   }
   .score-num {
     position: absolute; top: 50%; left: 50%;
@@ -635,8 +636,7 @@
 // ══════════════════════════════════════════════════════
 // CONFIG — paste your Google Apps Script URL here
 // ══════════════════════════════════════════════════════
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzk2cOl36bJ3ZhChlf-NcKyn2L3wqosodGZVfgoYUve67PTgKmA49rewjq4D6ZhQJvVeA/exec";
-
+const GOOGLE_SCRIPT_URL = "/Users/parashshah/Downloads/files (1)/google-apps-script.js /Users/parashshah/Downloads/files (1)/index.html";
 // ══════════════════════════════════════════════════════
 // QUESTIONS  (correct answer is always index 0 here;
 // shuffleOptions() will randomise them at runtime)
@@ -1226,20 +1226,23 @@ function submitQuiz() {
 
   showScreen('result-screen');
 
-  // ── animate ring
-  const circumference = 2 * Math.PI * 60; // r=60 → ≈ 376.99
-  document.getElementById('ring-fill').style.strokeDasharray  = circumference;
-  document.getElementById('ring-fill').style.strokeDashoffset = circumference;
+  // ── score display
   document.getElementById('score-num').innerHTML = `${correct}<small>/${total}</small>`;
-  setTimeout(() => {
-    const offset = circumference - (circumference * percentage / 100);
-    document.getElementById('ring-fill').style.strokeDashoffset = offset;
-  }, 150);
-
   document.getElementById('result-name').textContent = student.name;
   document.getElementById('stat-correct').textContent = correct;
   document.getElementById('stat-wrong').textContent   = wrong;
   document.getElementById('stat-skip').textContent    = skip;
+
+  // ── ring animation: r=60 → circumference ≈ 377
+  const circ = 377;
+  const ring = document.getElementById('ring-fill');
+  ring.style.strokeDasharray  = circ;
+  ring.style.strokeDashoffset = circ;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      ring.style.strokeDashoffset = circ - (circ * percentage / 100);
+    });
+  });
 
   const msgs = [
     [90, '🏆 Outstanding! You are a Python Pro!'],
@@ -1251,7 +1254,7 @@ function submitQuiz() {
   document.getElementById('score-msg').textContent = msgs.find(([min]) => percentage >= min)[1];
 
   buildReview();
-  sendToGoogleSheets(correct, total, percentage, correct, wrong, skip);
+  sendToGoogleSheets(correct, total, percentage, wrong, skip);
 }
 
 // ══════════════════════════════════════════════════════
@@ -1310,38 +1313,37 @@ function buildReview() {
 // ══════════════════════════════════════════════════════
 // GOOGLE SHEETS
 // ══════════════════════════════════════════════════════
-async function sendToGoogleSheets(score, total, percentage, correct, wrong, skip) {
+async function sendToGoogleSheets(correct, total, percentage, wrong, skip) {
   const statusEl = document.getElementById('submit-status-msg');
   statusEl.className = 'submit-status';
   statusEl.textContent = '⏳ Saving your results...';
 
-  if (false) {
-    statusEl.textContent = '⚠️ Google Sheets not configured yet. See README.md to connect.';
-    return;
-  }
-
   const payload = {
-    name:      student.name,
-    contact:   student.contact,
-    email:     student.email,
-    score:     score,
-    total:     total,
+    name:       student.name,
+    contact:    student.contact,
+    email:      student.email,
+    score:      correct + '/' + total,
+    total:      total,
     percentage: percentage,
-    correct:   correct,
-    wrong:     wrong,
-    skipped:   skip,
-    timestamp: new Date().toLocaleString('en-NP', { timeZone: 'Asia/Kathmandu' })
+    correct:    correct,
+    wrong:      wrong,
+    skipped:    skip,
+    timestamp:  new Date().toLocaleString('en-NP', { timeZone: 'Asia/Kathmandu' })
   };
 
+  // Send as text/plain to avoid CORS preflight (standard Apps Script workaround)
   try {
-    await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(payload)
     });
     statusEl.className = 'submit-status success';
     statusEl.textContent = '✅ Results saved! Your instructor can see your score.';
   } catch (err) {
+    // no-cors always succeeds unless network is down; log for debugging
+    console.error('Sheets error:', err);
     statusEl.className = 'submit-status error';
     statusEl.textContent = '⚠️ Could not save — please inform your instructor manually.';
   }
